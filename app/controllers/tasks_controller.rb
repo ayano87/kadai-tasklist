@@ -1,8 +1,9 @@
 class TasksController < ApplicationController
-    before_action :set_task, only:[:show, :edit, :update, :destroy]
+    before_action :require_user_logged_in
+    before_action :set_task, only: [:show, :edit, :update, :destroy]
     
     def index
-        @tasks = Task.all
+        @tasks = current_user.tasks
     end
     
     def show
@@ -13,14 +14,14 @@ class TasksController < ApplicationController
     end
     
     def create
-        @task = Task.new(task_params)
+        @task = current_user.tasks.build(task_params)
         
         if @task.save
             flash[:success] = "Taskを登録しました"
-            redirect_to @task
+            redirect_to root_url
         else
             flash.now[:danger] = "Taskが登録できませんでした"
-            render :new
+            render "toppages/index"
         end
     end
     
@@ -48,6 +49,7 @@ class TasksController < ApplicationController
     
     def set_task
         @task = Task.find(params[:id])
+        redirect_to root_url if @task.user != current_user
     end
     
     def task_params
